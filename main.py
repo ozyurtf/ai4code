@@ -1,6 +1,10 @@
 # Importing libraries.
 import json
 
+# Importing data.
+train_ancestors = pd.read_csv('/Users/ozyurtf/Documents/data/AI4Code/train_ancestors.csv')
+train_orders = pd.read_csv('/Users/ozyurtf/Documents/data/AI4Code/train_orders.csv')
+
 # Opening a sample training json file.
 with open('/Users/ozyurtf/Documents/data/AI4Code/test/0010a919d60e4f.json') as f:
     train_data = json.load(f)
