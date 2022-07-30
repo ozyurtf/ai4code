@@ -1,5 +1,11 @@
 # Importing libraries.
 import json
+import pandas as pd
+
+# Importing data.
+train_ancestors = pd.read_csv('/Users/ozyurtf/Documents/data/AI4Code/train_ancestors.csv')
+train_orders = pd.read_csv('/Users/ozyurtf/Documents/data/AI4Code/train_orders.csv')
+sample_submission = pd.read_csv('/Users/ozyurtf/Documents/data/AI4Code/sample_submission.csv')
 
 # Importing data.
 train_ancestors = pd.read_csv('/Users/ozyurtf/Documents/data/AI4Code/train_ancestors.csv')
@@ -32,5 +38,3 @@ print()
 print("Markdowns:")
 print("\n".join([train_data['source'][val] for val in markdown_ids]))
 print()
-
-
