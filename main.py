@@ -1,6 +1,7 @@
 # Importing libraries.
 import json
 import pandas as pd
+import os
 
 # Defining the main path.
 main_path = '/Users/ozyurtf/Documents/data/ai4code/'
@@ -8,6 +9,7 @@ main_path = '/Users/ozyurtf/Documents/data/ai4code/'
 # Importing data.
 train_ancestors = pd.read_csv(main_path + 'train_ancestors.csv')
 train_orders = pd.read_csv(main_path + 'train_orders.csv')
+sample_submission = pd.read_csv(main_path + 'sample_submission.csv')
 
 
 def extract_codes_markdowns(train_or_test, code_or_markdown, file_id):
@@ -42,3 +44,35 @@ train_codes_markdowns = pd.concat([train_codes, train_markdowns], axis=1)
 train_codes_markdowns.columns = ['codes', 'markdowns']
 train_final = pd.concat([train_orders, train_codes_markdowns], axis=1)
 train_final = train_final[['id', 'codes', 'markdowns', 'cell_order']]
+
+# Saving the final training data as csv.
+train_final.to_csv('train_final.csv')
+
+# Extracting the codes and markdowns from each json file in test data.
+test_jsons = os.listdir(main_path + 'test')
+test_codes = []
+test_markdowns = []
+test_ids = []
+for j in test_jsons:
+    test_id = j.replace('.json', '')
+    test_code = extract_codes_markdowns(train_or_test='test',
+                                        code_or_markdown='code',
+                                        file_id=test_id)
+    test_markdown = extract_codes_markdowns(train_or_test='test',
+                                            code_or_markdown='markdown',
+                                            file_id=test_id)
+
+    test_ids.append(test_id)
+    test_codes.append(test_code)
+    test_markdowns.append(test_markdown)
+
+# Creating a dataframe for test set similar to the one we prepared for training set.
+test_final = pd.DataFrame({'id': test_ids,
+                           'codes': test_codes,
+                           'markdowns': test_markdowns})
+
+# Including the cell order to the test dataframe.
+test_final = test_final.merge(sample_submission, on ='id', how='left')
+
+# Saving the final test data as csv.
+test_final.to_csv('test_final.csv')
