@@ -2,6 +2,8 @@
 import json
 import pandas as pd
 import os
+from langdetect import detect
+import ast
 
 # Defining the main path.
 main_path = '/Users/ozyurtf/Documents/data/ai4code/'
@@ -29,6 +31,15 @@ def extract_codes_markdowns(train_or_test, code_or_markdown, file_id):
     return code_or_markdown_list
 
 
+def detect_language(text_list):
+    try:
+        joined_texts = ' '.join(text_list)
+        detected_language = detect(joined_texts)
+    except:
+        detected_language = 'N/A'
+    return detected_language
+
+
 # Extracting the codes in training data.
 train_codes = train_orders['id'].apply(lambda x: extract_codes_markdowns(train_or_test='train',
                                                                          code_or_markdown='code',
@@ -45,8 +56,8 @@ train_codes_markdowns.columns = ['codes', 'markdowns']
 train_final = pd.concat([train_orders, train_codes_markdowns], axis=1)
 train_final = train_final[['id', 'codes', 'markdowns', 'cell_order']]
 
-# Saving the final training data as csv.
-train_final.to_csv('train_final.csv')
+# Detecting the language of the markdowns in training data.
+train_final['language'] = train_final['markdowns'].apply(detect_language)
 
 # Extracting the codes and markdowns from each json file in test data.
 test_jsons = os.listdir(main_path + 'test')
@@ -74,5 +85,11 @@ test_final = pd.DataFrame({'id': test_ids,
 # Including the cell order to the test dataframe.
 test_final = test_final.merge(sample_submission, on ='id', how='left')
 
+# Detecting the language of the markdowns in test data.
+test_final['language'] = test_final['markdowns'].apply(detect_language)
+
+# Saving the final training data as csv.
+train_final.to_csv('train_final.csv', index=False)
+
 # Saving the final test data as csv.
-test_final.to_csv('test_final.csv')
+test_final.to_csv('test_final.csv', indeex=False)
