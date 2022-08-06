@@ -3,7 +3,6 @@ import json
 import pandas as pd
 import os
 from langdetect import detect
-import ast
 
 # Defining the main path.
 main_path = '/Users/ozyurtf/Documents/data/ai4code/'
@@ -83,7 +82,7 @@ test_final = pd.DataFrame({'id': test_ids,
                            'markdowns': test_markdowns})
 
 # Including the cell order to the test dataframe.
-test_final = test_final.merge(sample_submission, on ='id', how='left')
+test_final = test_final.merge(sample_submission, on='id', how='left')
 
 # Detecting the language of the markdowns in test data.
 test_final['language'] = test_final['markdowns'].apply(detect_language)
@@ -92,4 +91,4 @@ test_final['language'] = test_final['markdowns'].apply(detect_language)
 train_final.to_csv('train_final.csv', index=False)
 
 # Saving the final test data as csv.
-test_final.to_csv('test_final.csv', indeex=False)
+test_final.to_csv('test_final.csv', index=False)
