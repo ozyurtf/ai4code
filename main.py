@@ -58,6 +58,9 @@ train_final = train_final[['id', 'codes', 'markdowns', 'cell_order']]
 # Detecting the language of the markdowns in training data.
 train_final['language'] = train_final['markdowns'].apply(detect_language)
 
+# Including the parent and ancestor ids in training data.
+train_final = train_final.merge(train_ancestors, on='id', how='left')
+
 # Extracting the codes and markdowns from each json file in test data.
 test_jsons = os.listdir(main_path + 'test')
 test_codes = []
