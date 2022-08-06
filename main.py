@@ -61,6 +61,9 @@ train_final['language'] = train_final['markdowns'].apply(detect_language)
 # Including the parent and ancestor ids in training data.
 train_final = train_final.merge(train_ancestors, on='id', how='left')
 
+# Saving the final training data as csv.
+train_final.to_csv('train_final.csv', index=False)
+
 # Extracting the codes and markdowns from each json file in test data.
 test_jsons = os.listdir(main_path + 'test')
 test_codes = []
@@ -89,9 +92,6 @@ test_final = test_final.merge(sample_submission, on='id', how='left')
 
 # Detecting the language of the markdowns in test data.
 test_final['language'] = test_final['markdowns'].apply(detect_language)
-
-# Saving the final training data as csv.
-train_final.to_csv('train_final.csv', index=False)
 
 # Saving the final test data as csv.
 test_final.to_csv('test_final.csv', index=False)
