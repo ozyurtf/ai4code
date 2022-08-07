@@ -1,6 +1,6 @@
 # AI4CODE 
 
-Today, Jupyter Notebooks are one of the main sources Data Scientists use to write their codes and explain the stories behind these codes with markdowns. To be able to tell a good story about their projects, many people use two entities: codes and markdowns. 
+Today, Jupyter Notebooks are one of the main sources Data Scientists use to write their codes and explain the stories behind these codes with markdowns. 
 
 It would be pretty useful to find a method that can understand the relationships between the codes and markdowns. And the objective of this project is to find this method. 
 
