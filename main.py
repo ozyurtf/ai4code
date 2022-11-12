@@ -3,6 +3,9 @@ import json
 import pandas as pd
 import os
 from langdetect import detect
+import re
+from html.parser import HTMLParser
+from io import StringIO
 
 # Defining the main path.
 main_path = '/Users/ozyurtf/Documents/data/ai4code/'
@@ -39,6 +42,36 @@ def detect_language(text_list):
     return detected_language
 
 
+class HTMLStripper(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.reset()
+        self.strict = False
+        self.convert_charrefs = True
+        self.text = StringIO()
+
+    def handle_data(self, d):
+        self.text.write(d)
+
+    def get_data(self):
+        return self.text.getvalue()
+
+
+def clean_markdown(text, puncts_to_remove = '!"#$%&\*+-/;<>\\^_`|~'):
+    html_s = HTMLStripper()
+    html_s.feed(text)
+
+    text_tags_stripped = html_s.get_data()
+    text_encoded = text_tags_stripped
+
+    translator = str.maketrans(puncts_to_remove, ' ' * len(puncts_to_remove))
+
+    text_cleaned = text_encoded.translate(translator)
+    text_cleaned = re.sub(' +', ' ', text_cleaned)
+
+    return text_cleaned
+
+
 # Extracting the codes in training data.
 train_codes = train_orders['id'].apply(lambda x: extract_codes_markdowns(train_or_test='train',
                                                                          code_or_markdown='code',
@@ -60,6 +93,9 @@ train_final['language'] = train_final['markdowns'].apply(detect_language)
 
 # Including the parent and ancestor ids in training data.
 train_final = train_final.merge(train_ancestors, on='id', how='left')
+
+# Cleaning markdowns in training data.
+train_final['markdowns_cleaned'] = train_final['markdowns'].apply(lambda x: [clean_markdown(val) for val in x])
 
 # Saving the final training data as csv.
 train_final.to_csv('train_final.csv', index=False)
@@ -93,5 +129,9 @@ test_final = test_final.merge(sample_submission, on='id', how='left')
 # Detecting the language of the markdowns in test data.
 test_final['language'] = test_final['markdowns'].apply(detect_language)
 
+# Cleaning markdowns in test data.
+test_final['markdowns_cleaned'] = test_final['markdowns'].apply(lambda x: [clean_markdown(val) for val in x])
+
 # Saving the final test data as csv.
 test_final.to_csv('test_final.csv', index=False)
+
