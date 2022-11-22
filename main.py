@@ -21,7 +21,7 @@ def detect_language(text_list):
     return detected_language
 
 
-class HTMLStripper(HTMLParser):
+class HTMLStripper(HTMLParser): 
     def __init__(self):
         super().__init__()
         self.reset()
