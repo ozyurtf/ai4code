@@ -1,7 +1,8 @@
 # Importing libraries.
 import pandas as pd
 import os
-from utils import *
+from subprocess import call
+call(["python", "utils.py"])
 
 # Defining the main path.
 main_path = '/Users/ozyurtf/Documents/data/ai4code/'
