@@ -1,17 +1,18 @@
 # Importing libraries.
-import translators as ts
+from googletrans import Translator
 import textwrap
 from html.parser import HTMLParser
-from langdetect import detect
 import re
 from io import StringIO
 import json
+
+translator = Translator()
 
 
 def detect_language(text_list):
     try:
         joined_texts = ' '.join(text_list)
-        detected_language = detect(joined_texts)
+        detected_language = translator.detect(joined_texts).lang
     except:
         detected_language = 'N/A'
     return detected_language
@@ -47,6 +48,22 @@ def clean_markdown(text, puncts_to_remove = '!"#$%&\*+-/;<>\\^_`|~'):
     return text_cleaned
 
 
+def translate(text):
+    if len(text) < 5000:
+        translated_text = translator.translate(text = text, dest='en').text
+    else:
+        text_chunks = textwrap.wrap(text=text,
+                                    width=5000,
+                                    break_long_words=False,
+                                    replace_whitespace=False)
+        chunks_translated = []
+        for chunk in text_chunks:
+            chunk_translated = translator.translate(text = chunk, dest='en').text
+            chunks_translated.append(chunk_translated)
+        translated_text = ' '.join(chunks_translated)
+    return translated_text
+
+
 def extract_shuffled_codes_markdowns(train_or_test, file_id):
     # Importing codes/markdowns data.
     with open(main_path + '{}/{}.json'.format(train_or_test, file_id)) as f:
@@ -61,9 +78,10 @@ def extract_shuffled_codes_markdowns(train_or_test, file_id):
     for k in data['cell_type'].keys():
         cell_type = data['cell_type'][k]
         if cell_type == 'markdown':
-            cleaned_markdowns = clean_markdown(data['source'][k])
-            codes_markdowns_shuffled.append(cleaned_markdowns)
-            markdowns_shuffled.append(cleaned_markdowns)
+            cleaned_markdown = clean_markdown(data['source'][k])
+            cleaned_translated_markdown = translate(cleaned_markdown)
+            codes_markdowns_shuffled.append(cleaned_translated_markdown)
+            markdowns_shuffled.append(cleaned_translated_markdown)
         else:
             codes = data['source'][k]
             codes_markdowns_shuffled.append(codes)
@@ -72,22 +90,3 @@ def extract_shuffled_codes_markdowns(train_or_test, file_id):
     # Returning the shuffled cell ids, cell types, codes/markdowns, and markdown languages.
     return cells_shuffled_joined, cell_types_shuffled, codes_markdowns_shuffled, markdown_language
 
-
-def translate(text):
-    if len(text)<5000:
-        translated_text = ts.google(query_text = text,
-                                    from_language = 'auto',
-                                    to_language = 'en')
-    else:
-        text_chunks = textwrap.wrap(text=text,
-                                    width=5000,
-                                    break_long_words=False,
-                                    replace_whitespace=False)
-        chunks_translated = []
-        for chunk in text_chunks:
-            chunk_translated = ts.google(query_text = chunk,
-                                         from_language = 'auto',
-                                         to_language = 'en')
-            chunks_translated.append(chunk_translated)
-        translated_text = ' '.join(chunks_translated)
-    return translated_text
