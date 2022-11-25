@@ -21,6 +21,22 @@ def detect_language(text):
     return detected_language
 
 
+def translate(text):
+    if len(text) < 5000:
+        translated_text = translator.translate(text = text, dest='en').text
+    else:
+        text_chunks = textwrap.wrap(text=text,
+                                    width=5000,
+                                    break_long_words=False,
+                                    replace_whitespace=False)
+        chunks_translated = []
+        for chunk in text_chunks:
+            chunk_translated = translator.translate(text = chunk, dest='en').text
+            chunks_translated.append(chunk_translated)
+        translated_text = ' '.join(chunks_translated)
+    return translated_text
+
+
 class HTMLStripper(HTMLParser):
     def __init__(self):
         super().__init__()
@@ -49,22 +65,6 @@ def clean_markdown(text, puncts_to_remove = '!"#$%&\*+-/;<>\\^_`|~'):
     text_cleaned = re.sub(' +', ' ', text_cleaned)
 
     return text_cleaned
-
-
-def translate(text):
-    if len(text) < 5000:
-        translated_text = translator.translate(text = text, dest='en').text
-    else:
-        text_chunks = textwrap.wrap(text=text,
-                                    width=5000,
-                                    break_long_words=False,
-                                    replace_whitespace=False)
-        chunks_translated = []
-        for chunk in text_chunks:
-            chunk_translated = translator.translate(text = chunk, dest='en').text
-            chunks_translated.append(chunk_translated)
-        translated_text = ' '.join(chunks_translated)
-    return translated_text
 
 
 def extract_shuffled_codes_markdowns(train_or_test, file_id):
