@@ -9,10 +9,13 @@ import json
 translator = Translator()
 
 
-def detect_language(text_list):
+def detect_language(text):
     try:
-        joined_texts = ' '.join(text_list)
-        detected_language = translator.detect(joined_texts).lang
+        if type(text)==list:
+            strng = ' '.join(text)
+        else:
+            strng = text
+        detected_language = translator.detect(strng).lang
     except:
         detected_language = 'N/A'
     return detected_language
@@ -73,20 +76,28 @@ def extract_shuffled_codes_markdowns(train_or_test, file_id):
     cells_shuffled = list(data['cell_type'].keys())
     cells_shuffled_joined = ' '.join(cells_shuffled)
     cell_types_shuffled = list(data['cell_type'].values())
+
     codes_markdowns_shuffled = []
     markdowns_shuffled = []
+
     for k in data['cell_type'].keys():
         cell_type = data['cell_type'][k]
         if cell_type == 'markdown':
             cleaned_markdown = clean_markdown(data['source'][k])
-            cleaned_translated_markdown = translate(cleaned_markdown)
-            codes_markdowns_shuffled.append(cleaned_translated_markdown)
-            markdowns_shuffled.append(cleaned_translated_markdown)
+            cleaned_markdown_lang = detect_language(cleaned_markdown)
+
+            if len(cleaned_markdown) <= 15000 and cleaned_markdown_lang != "en":
+                cleaned_markdown = translate(cleaned_markdown)
+
+            elif len(cleaned_markdown) > 15000:
+                cleaned_markdown = 'LONG MARKDOWN'
+
+            codes_markdowns_shuffled.append(cleaned_markdown)
+            markdowns_shuffled.append(cleaned_markdown)
         else:
             codes = data['source'][k]
             codes_markdowns_shuffled.append(codes)
-    markdown_language = detect_language(markdowns_shuffled)
 
     # Returning the shuffled cell ids, cell types, codes/markdowns, and markdown languages.
-    return cells_shuffled_joined, cell_types_shuffled, codes_markdowns_shuffled, markdown_language
+    return cells_shuffled_joined, cell_types_shuffled, codes_markdowns_shuffled
 
