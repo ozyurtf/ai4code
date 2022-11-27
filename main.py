@@ -1,58 +1,64 @@
 # Importing libraries.
 import pandas as pd
 import os
-from subprocess import call
-call(["python", "utils.py"])
+from multiprocess import Pool
+from functools import partial
+from utils import *
 
-# Defining the main path.
-main_path = '/Users/ozyurtf/Documents/data/ai4code/'
+# Importing training and test data.
+train_ancestors = pd.read_csv('data/train_ancestors.csv').reset_index(drop=True)
+train_orders = pd.read_csv('data/train_orders.csv').reset_index(drop=True)
+test_jsons = os.listdir('data/test')
+train_ids = train_orders['id']
+test_ids = [val.replace('.json', '') for val in test_jsons]
 
-# Importing ancestors data.
-train_ancestors = pd.read_csv(main_path + 'train_ancestors.csv')
-train_orders = pd.read_csv(main_path + 'train_orders.csv')
+# Extracting shuffled cells, cell types, and codes/markdowns for both training and test data.
+pool = Pool(6)
+partial_train = partial(extract_shuffled_codes_markdowns, train_test = 'train')
+partial_test = partial(extract_shuffled_codes_markdowns, train_test = 'test')
 
-# Extracting shuffled cell ids, cell types, and codes/markdowns, and detecting markdown languages for training data.
-train_cells_shuffled, train_cell_types_shuffled,train_codes_markdowns_shuffled = [], [], []
-for id in train_orders['id']:
-    cells_shuffled, cell_types_shuffled,codes_markdowns_shuffled = extract_shuffled_codes_markdowns('train', id)
+(train_cell_types_shuffled,
+ train_cell_orders_shuffled,
+ train_codes_markdowns_shuffled) = zip(*pool.map_async(partial_train, train_ids).get())
 
-    train_cells_shuffled.append(cells_shuffled)
-    train_cell_types_shuffled.append(cell_types_shuffled)
-    train_codes_markdowns_shuffled.append(codes_markdowns_shuffled)
+(test_cell_types_shuffled,
+ test_cell_orders_shuffled,
+ test_codes_markdowns_shuffled) = zip(*pool.map_async(partial_test, test_ids).get())
+
+pool.close()
+pool.join()
 
 # Including shuffled cells, cell types, codes, markdowns and markdown languages in training data.
-train_shuffled_codes_markdowns = pd.DataFrame({'cell_types_shuffled': train_cell_types_shuffled,
-                                               'code_markdowns_shuffled': train_codes_markdowns_shuffled,
-                                               'cell_shuffled': train_cells_shuffled})
+train_shuffled_codes_markdowns = pd.DataFrame({'cell_type_shuffled': train_cell_types_shuffled,
+                                               'cell_order_shuffled': train_cell_orders_shuffled,
+                                               'code_markdown_shuffled': train_codes_markdowns_shuffled})
 train_final = pd.concat([train_orders, train_shuffled_codes_markdowns], axis=1)
-train_final = train_final[['id', 'cell_types_shuffled', 'code_markdowns_shuffled', 'cell_shuffled', 'cell_order']]
+train_final['cell_order'] = train_final['cell_order'].apply(lambda x: x.split(' '))
+
+cell_ranks_shuffled = []
+for x in range(train_final.shape[0]):
+    cell_order_shuffled = train_final['cell_order_shuffled'][x]
+    cell_order = train_final['cell_order'][x]
+    cell_rank_map = dict(zip(cell_order, range(len(cell_order))))
+    cell_rank_shuffled = [cell_rank_map[val] for val in cell_order_shuffled]
+    cell_ranks_shuffled.append(cell_rank_shuffled)
+
+train_final['cell_rank_shuffled'] = cell_ranks_shuffled
+train_final = train_final[['id', 'cell_type_shuffled', 'code_markdown_shuffled',
+                           'cell_order_shuffled', 'cell_rank_shuffled', 'cell_order']]
 
 # Including the parent and ancestor ids in training data.
 train_final = train_final.merge(train_ancestors, on='id', how='left')
 
 # Saving the final training data as csv.
-train_final.to_csv('train_final.csv', index=False)
-
-# Extracting the codes and markdowns of test data.
-test_jsons = os.listdir(main_path + 'test')
-
-# Extracting shuffled cell ids, cell types, and codes/markdowns, and detecting markdown languages for test data.
-test_ids, test_cells_shuffled, test_cell_types_shuffled,test_codes_markdowns_shuffled = [], [], []
-for j in test_jsons:
-    id = j.replace('.json', '')
-    cells_shuffled, cell_types_shuffled,codes_markdowns_shuffled = extract_shuffled_codes_markdowns('test', id)
-
-    test_ids.append(id)
-    test_cells_shuffled.append(cells_shuffled)
-    test_cell_types_shuffled.append(cell_types_shuffled)
-    test_codes_markdowns_shuffled.append(codes_markdowns_shuffled)
+train_final.to_csv('data/train_final.csv', index=False)
 
 # Creating a dataframe of shuffled cells, cell types, codes, markdowns and markdown languages for test data.
 test_final = pd.DataFrame({'id': test_ids,
-                           'cell_types_shuffled': test_cell_types_shuffled,
-                           'code_markdowns_shuffled': test_codes_markdowns_shuffled,
-                           'cell_shuffled': test_cells_shuffled})
+                           'cell_type_shuffled': test_cell_types_shuffled,
+                           'code_markdown_shuffled': test_codes_markdowns_shuffled,
+                           'cell_order_shuffled': test_cell_orders_shuffled})
 
 # Saving the final test data as csv.
-test_final.to_csv('test_final.csv', index=False)
+test_final.to_csv('data/test_final.csv', index=False)
 
