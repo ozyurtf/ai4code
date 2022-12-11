@@ -42,3 +42,4 @@ markdown_embeddings_scaled = (markdowns_embeddings[0] * markdowns_attention_mask
 linear = Linear(768, 768)(markdown_embeddings_scaled)
 tanh = Tanh()(linear)
 
+print(tanh)
