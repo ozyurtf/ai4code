@@ -7,7 +7,7 @@ from transformers import AutoTokenizer, AutoModel
 tokenizer = AutoTokenizer.from_pretrained("microsoft/codebert-base")
 model = AutoModel.from_pretrained("microsoft/codebert-base")
 
-train_final = pd.read_csv('data/train_final.csv', nrows = 1000, converter = {'cell_type_shuffled': ast.literal_eval,
+train_final = pd.read_csv('data/train_final.csv', nrows = 1000, converters = {'cell_type_shuffled': ast.literal_eval,
                                                                              'code_markdown_shuffled': ast.literal_eval,
                                                                              'cell_order_shuffled': ast.literal_eval,
                                                                              'cell_rank_shuffled': ast.literal_eval,
