@@ -30,7 +30,6 @@ markdowns_tokenized = tokenizer(markdowns.tolist(), padding=True, truncation=Tru
 codes_input_ids, codes_attention_masks = codes_tokenized.values()
 markdowns_input_ids, markdowns_attention_masks = markdowns_tokenized.values()
 
-
 with no_grad():
     codes_embeddings = model(codes_input_ids, attention_mask=codes_attention_masks)
     markdowns_embeddings = model(markdowns_input_ids, attention_mask=markdowns_attention_masks)
