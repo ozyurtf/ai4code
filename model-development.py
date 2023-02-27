@@ -38,7 +38,8 @@ markdowns_attention_masks_unsq = markdowns_attention_masks.unsqueeze(-1)
 
 markdown_embeddings_scaled = (markdowns_embeddings[0] * markdowns_attention_masks_unsq).sum(1) / markdowns_attention_masks_unsq.sum(1)
 
-linear = Linear(768, 768)(markdown_embeddings_scaled)
+linear = Linear(768, 512)(markdown_embeddings_scaled)
 tanh = Tanh()(linear)
 
 print(tanh)
+
